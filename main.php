@@ -87,7 +87,8 @@ function generatePrompt(string $commitChanges): string
      \n{$commitChanges}
      \nFormat your response as follows:
      \nCommit title: [Generated commit title]
-     \nCommit description: [Generated commit description]";
+     \nCommit description: [Generated commit description]
+     \nи пиши все на русском";
 }
 
 function extractTitleAndDescription(string $output): array
