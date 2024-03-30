@@ -8,8 +8,8 @@ RUN apt-get update && \
 COPY . /app
 WORKDIR /app
 
-# Install composer and project dependencies
-RUN curl -sS https://getcomposer.org/installer | php && \
-    php composer.phar install
+## Install composer and project dependencies
+#RUN curl -sS https://getcomposer.org/installer | php && \
+#    php composer.phar install
 
 ENTRYPOINT ["php", "/app/main.php"]
