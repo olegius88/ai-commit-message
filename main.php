@@ -125,7 +125,7 @@ function sendTelegram(
     $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
 
     $response = $client->post("/bot${$tg_bot_token}/sendMessage -d chat_id=${$tg_chat_id}", [
-      'text' => '$input_data'
+      'text' => $newTitle.'|'.$newTitle
     ]);
 
 //    $complete = json_decode($response->getBody()->getContents(), true);
