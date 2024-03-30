@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-
 require 'vendor/autoload.php';
 
 function main(): void
@@ -16,7 +13,6 @@ function main(): void
 
   $committerName = exec("git log -1 --pretty=%cn $commitSha");
   $committerEmail = exec("git log -1 --pretty=%ce $commitSha");
-
 
   $model = getenv('OPENAI_MODEL') ?: 'gpt-3.5-turbo'; // Default to gpt-3.5-turbo if no environment variable is set
 
@@ -32,7 +28,6 @@ function main(): void
     $model,
   );
 
-//  updateLastCommitMessage($newTitle, $newDescription, $committerEmail, $committerName);
   sendTelegram($newTitle, $newDescription, $committerEmail, $committerName);
 }
 
@@ -55,28 +50,24 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
     ]
   ];
 
-  try {
-    $client = new Client([
-      'base_uri' => 'https://api.openai.com',
-      'headers' => [
-        'Authorization' => 'Bearer ' . $openAiApiKey,
-        'Content-Type' => 'application/json'
-      ]
-    ]);
+  $response = file_get_contents("https://api.openai.com/v1/chat/completions", false, stream_context_create([
+    'http' => [
+      'method' => 'POST',
+      'header' => "Authorization: Bearer {$openAiApiKey}\r\n" .
+        "Content-Type: application/json\r\n",
+      'content' => json_encode($input_data),
+    ]
+  ]));
 
-    $response = $client->post('/v1/chat/completions', [
-      'json' => $input_data
-    ]);
-
-    $complete = json_decode($response->getBody()->getContents(), true);
-    $output = $complete['choices'][0]['message']['content'];
-
-    return extractTitleAndDescription($output);
-
-  } catch (GuzzleException $e) {
-    echo "::error::Error fetching AI-generated title and description: " . $e->getMessage() . PHP_EOL;
+  if ($response === false) {
+    echo "::error::Error fetching AI-generated title and description." . PHP_EOL;
     exit(1);
   }
+
+  $complete = json_decode($response, true);
+  $output = $complete['choices'][0]['message']['content'];
+
+  return extractTitleAndDescription($output);
 }
 
 function generatePrompt(string $commitChanges): string
@@ -85,10 +76,9 @@ function generatePrompt(string $commitChanges): string
      \n(max two or three lines of description to not exceed the model max token limitation):
      \nCommit changes:
      \n{$commitChanges}
-     \nFormat your response as follows:
+     \nFormat your response as follows in Russian:
      \nCommit title: [Generated commit title]
-     \nCommit description: [Generated commit description]
-     \nи пиши все на русском";
+     \nCommit description: [Generated commit description]";
 }
 
 function extractTitleAndDescription(string $output): array
@@ -114,143 +104,50 @@ function sendTelegram(
   string $committerName
 ): void
 {
-  $newTitle = escapeshellarg($newTitle);
-  $newDescription = escapeshellarg($newDescription);
-
-  // Создаем экземпляр клиента GuzzleHttp
-  $client = new Client();
-
-// Данные для отправки сообщения
   $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
   $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
-  $message = $newTitle.'|'.$newDescription;
+  $message = $newTitle . '|' . $newDescription;
 
-// Отправляем запрос к API Telegram
-  try {
-    $response = $client->post("https://api.telegram.org/bot{$tg_bot_token}/sendMessage", [
-      'json' => [
-        'chat_id' => $tg_chat_id,
-        'text' => $message,
-      ],
-    ]);
+  $data = [
+    'chat_id' => $tg_chat_id,
+    'text' => $message,
+  ];
 
-    // Получаем ответ от API Telegram
-    $statusCode = $response->getStatusCode();
-    $responseData = json_decode($response->getBody()->getContents(), true);
+  $options = [
+    'http' => [
+      'method' => 'POST',
+      'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+      'content' => http_build_query($data),
+    ],
+  ];
 
-    if ($statusCode === 200 && $responseData['ok'] === true) {
-      echo 'Сообщение успешно отправлено в Telegram!';
-    } else {
-      echo 'Ошибка при отправке сообщения в Telegram.';
-    }
-  } catch (GuzzleException $e) {
-    echo 'Произошла ошибка при выполнении запроса: ' . $e->getMessage();
-    exit(1);
-  }
-}
+  $context = stream_context_create($options);
+  $result = file_get_contents("https://api.telegram.org/bot{$tg_bot_token}/sendMessage", false, $context);
 
-function updateLastCommitMessage(
-  string $newTitle,
-  string $newDescription,
-  string $committerEmail,
-  string $committerName
-): void
-{
-  configureGitCommitter($committerEmail, $committerName);
-
-  $newTitle = escapeshellarg($newTitle);
-  $newDescription = escapeshellarg($newDescription);
-
-//  exec("git reset --soft HEAD~1");
-//  exec("git commit -m {$newTitle} -m {$newDescription}");
-//  exec("git push origin --force");
-
-  // Определяем идентификатор последнего коммита
-  $commitSha = trim(shell_exec("git rev-parse HEAD"));
-
-// Получаем текущий комментарий к коммиту
-  $currentComment = trim(shell_exec("git log -1 --pretty=%B"));
-
-  // Проверяем, существует ли ветка "AI commit message"
-  $branchExists = executeCommand("git rev-parse --verify AI\ commit\ message");
-  if ($branchExists) {
-    echo "Branch 'AI commit message' already exists." . PHP_EOL;
+  if ($result === false) {
+    echo 'Ошибка при отправке сообщения в Telegram.';
   } else {
-    // Создаем новую ветку "AI commit message" и переключаемся на нее
-    $branchCreated = executeCommand("git checkout -b \"AI commit message\"");
-    if ($branchCreated) {
-      echo "New branch 'AI commit message' created." . PHP_EOL;
-    } else {
-      echo "Failed to create branch 'AI commit message'." . PHP_EOL;
-      exit(1);
-    }
+    echo 'Сообщение успешно отправлено в Telegram!';
   }
-
-
-// Изменяем комментарий к коммиту
-  $newComment = "New AI-generated commit message";
-
-// Применяем изменения к последнему коммиту с новым комментарием
-  $commitAmended = executeCommand("git commit --amend -m \"$newComment\"");
-
-  if ($commitAmended) {
-    echo "Commit message amended successfully.\n";
-  } else {
-    echo "Failed to amend commit message.\n";
-    exit(1);
-  }
-
-// Пушим изменения в ветку "AI commit message"
-  $pushed = executeCommand("git push -f origin \"AI commit message\"");
-
-  if ($pushed) {
-    echo "Changes pushed to branch 'AI commit message'.\n";
-  } else {
-    echo "Failed to push changes to branch 'AI commit message'.\n";
-    exit(1);
-  }
-
-  unsetGitCommitterConfiguration();
-}
-
-function configureGitCommitter(string $committerEmail, string $committerName): void
-{
-  exec("git config user.email '{$committerEmail}'");
-  exec("git config user.name '{$committerName}'");
-}
-
-function unsetGitCommitterConfiguration(): void
-{
-  exec("git config --unset user.email");
-  exec("git config --unset user.name");
 }
 
 function getCommitChanges(string $commitSha): string
 {
   $command = "git diff {$commitSha}~ {$commitSha} | grep -v 'warning'";
 
-  exec($command, $output, $return_var);
+  $output = shell_exec($command);
 
-  if ($return_var == 0) {
-    $length = getenv('OPENAI_MODEL') ? match (getenv('OPENAI_MODEL')) {
-      'gpt-3.5-turbo' => 400,
-      'gpt-4' => 800,
-      'gpt-4-32k' => 3200,
-    } : 400;
-
-    $output = array_slice($output, 0, $length);
-    return implode("\n", $output);
-  } else {
-    echo "Error: Could not run git diff. Return code: " . $return_var;
+  if ($output === null) {
+    echo "Error: Could not run git diff." . PHP_EOL;
     exit(1);
   }
-}
 
-function executeCommand($command)
-{
-  $output = null;
-  $returnValue = null;
-  exec($command, $output, $returnValue);
-  return $returnValue === 0;
-}
+  $length = getenv('OPENAI_MODEL') ? match (getenv('OPENAI_MODEL')) {
+    'gpt-3.5-turbo' => 400,
+    'gpt-4' => 800,
+    'gpt-4-32k' => 3200,
+  } : 400;
 
+  $output = array_slice(explode("\n", $output), 0, $length);
+  return implode("\n", $output);
+}
