@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require 'vendor/autoload.php';
-
 function main(): void
 {
   $commitSha = getenv('GITHUB_SHA') ?: '';
@@ -28,7 +26,7 @@ function main(): void
     $model,
   );
 
-  sendTelegram($newTitle, $newDescription, $committerEmail, $committerName);
+  sendTelegram($newTitle, $newDescription, $committerEmail, $committerName, $commitTitle);
 }
 
 main();
@@ -101,12 +99,20 @@ function sendTelegram(
   string $newTitle,
   string $newDescription,
   string $committerEmail,
-  string $committerName
+  string $committerName,
+  string $commitTitle
 ): void
 {
+
   $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
   $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
-  $message = $newTitle . '|' . $newDescription;
+  $commit_url = getenv('COMMIT_URL');
+
+  $message = "Автор: $committerName ($committerEmail)\n"; //.$newTitle . '|' . $newDescription;
+  $message.= "Оригинальный комментарий: $commitTitle\n";
+  $message.= "ИИ заголовок: $newTitle\n";
+  $message.= "ИИ описание: $newDescription\n";
+  $message.= "Commit URL: $commit_url\n";
 
   $data = [
     'chat_id' => $tg_chat_id,
@@ -122,7 +128,7 @@ function sendTelegram(
   ];
 
   $context = stream_context_create($options);
-  $result = file_get_contents("https://api.telegram.org/bot{$tg_bot_token}/sendMessage", false, $context);
+  $result = file_get_contents("https://api.telegram.org/bot$tg_bot_token/sendMessage", false, $context);
 
   if ($result === false) {
     echo 'Ошибка при отправке сообщения в Telegram.';
