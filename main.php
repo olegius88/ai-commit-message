@@ -116,23 +116,19 @@ function sendTelegram(
   $newTitle = escapeshellarg($newTitle);
   $newDescription = escapeshellarg($newDescription);
 
-  $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
-  $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
-
-
   // Создаем экземпляр клиента GuzzleHttp
   $client = new Client();
 
 // Данные для отправки сообщения
-  $telegramBotToken = 'YOUR_TELEGRAM_BOT_TOKEN';
-  $telegramChatId = 'YOUR_TELEGRAM_CHAT_ID';
-  $message = $newTitle.'|'.$newTitle;
+  $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
+  $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
+  $message = $newTitle.'|'.$newDescription;
 
 // Отправляем запрос к API Telegram
   try {
-    $response = $client->post("https://api.telegram.org/bot{$telegramBotToken}/sendMessage", [
+    $response = $client->post("https://api.telegram.org/bot{$tg_bot_token}/sendMessage", [
       'json' => [
-        'chat_id' => $telegramChatId,
+        'chat_id' => $tg_chat_id,
         'text' => $message,
       ],
     ]);
