@@ -116,23 +116,38 @@ function sendTelegram(
   $newTitle = escapeshellarg($newTitle);
   $newDescription = escapeshellarg($newDescription);
 
+  $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
+  $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
+
+
+  // Создаем экземпляр клиента GuzzleHttp
+  $client = new Client();
+
+// Данные для отправки сообщения
+  $telegramBotToken = 'YOUR_TELEGRAM_BOT_TOKEN';
+  $telegramChatId = 'YOUR_TELEGRAM_CHAT_ID';
+  $message = $newTitle.'|'.$newTitle;
+
+// Отправляем запрос к API Telegram
   try {
-    $client = new Client([
-      'base_uri' => 'https://api.telegram.org',
+    $response = $client->post("https://api.telegram.org/bot{$telegramBotToken}/sendMessage", [
+      'json' => [
+        'chat_id' => $telegramChatId,
+        'text' => $message,
+      ],
     ]);
 
-    $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
-    $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
+    // Получаем ответ от API Telegram
+    $statusCode = $response->getStatusCode();
+    $responseData = json_decode($response->getBody()->getContents(), true);
 
-    $response = $client->post("/bot${$tg_bot_token}/sendMessage -d chat_id=${$tg_chat_id}", [
-      'text' => $newTitle.'|'.$newTitle
-    ]);
-
-//    $complete = json_decode($response->getBody()->getContents(), true);
-//    $output = $complete['choices'][0]['message']['content'];
-
+    if ($statusCode === 200 && $responseData['ok'] === true) {
+      echo 'Сообщение успешно отправлено в Telegram!';
+    } else {
+      echo 'Ошибка при отправке сообщения в Telegram.';
+    }
   } catch (GuzzleException $e) {
-    echo "::error::Error fetching AI-generated title and description: " . $e->getMessage() . PHP_EOL;
+    echo 'Произошла ошибка при выполнении запроса: ' . $e->getMessage();
     exit(1);
   }
 }
