@@ -104,7 +104,7 @@ function extractTitleAndDescription(string $output): array
 
 function toHash($str): string
 {
-  return str_replace($str, [':', ';', '-', ',', '.'], '_');
+  return str_replace([':', ';', '-', ',', '.'], '_', $str);
 }
 
 
