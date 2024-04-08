@@ -102,6 +102,12 @@ function extractTitleAndDescription(string $output): array
   return [$title, $description];
 }
 
+function toHash($str): string
+{
+  return str_replace($str, [':', ';', '-', ',', '.'], '_');
+}
+
+
 function sendTelegram(
   string $newTitle,
   string $newDescription,
@@ -117,14 +123,14 @@ function sendTelegram(
   $repo_name = getenv('REPO_NAME');
 
   $message = "Автор: $committerName ($committerEmail)";
-  $message.= "\nОригинальный комментарий: $commitTitle";
-  $message.= "\nИИ заголовок: $newTitle";
-  $message.= "\nИИ описание: $newDescription";
-  $message.= "\nCommit URL: $commit_url";
-  $message.= "\n";
-  $message.= "\n#коммиты #$committerEmail";
+  $message .= "\nОригинальный комментарий: $commitTitle";
+  $message .= "\nИИ заголовок: $newTitle";
+  $message .= "\nИИ описание: $newDescription";
+  $message .= "\nCommit URL: $commit_url";
+  $message .= "\n";
+  $message .= "\n#коммиты #" . toHash($committerEmail);
   if (!empty($repo_name)) {
-    $message .= " #$repo_name";
+    $message .= " #" . toHash($repo_name);
   }
 
   $data = [
