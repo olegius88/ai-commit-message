@@ -132,6 +132,7 @@ function sendTelegram(
   if (!empty($repo_name)) {
     $message .= " #" . toHash($repo_name);
   }
+  $message .= " #" . date('Y-m-d');
 
   $data = [
     'chat_id' => $tg_chat_id,
