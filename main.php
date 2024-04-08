@@ -114,13 +114,18 @@ function sendTelegram(
   $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
   $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
   $commit_url = getenv('COMMIT_URL');
+  $repo_name = getenv('REPO_NAME');
 
   $message = "Автор: $committerName ($committerEmail)";
   $message.= "\nОригинальный комментарий: $commitTitle";
   $message.= "\nИИ заголовок: $newTitle";
   $message.= "\nИИ описание: $newDescription";
   $message.= "\nCommit URL: $commit_url";
-  $message.= "\n#коммиты";
+  $message.= "\n";
+  $message.= "\n#коммиты #$committerEmail";
+  if (!empty($repo_name)) {
+    $message .= " #$repo_name";
+  }
 
   $data = [
     'chat_id' => $tg_chat_id,
