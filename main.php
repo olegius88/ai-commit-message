@@ -23,7 +23,6 @@ function main(): void
   list($newTitle, $newDescription) = fetchAiGeneratedTitleAndDescription(
     getCommitChanges($commitSha),
     getenv('OPENAI_API_KEY'),
-    $model,
   );
 
   sendTelegram($newTitle, $newDescription, $committerEmail, $committerName, $commitTitle);
@@ -31,13 +30,21 @@ function main(): void
 
 main();
 
-function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $openAiApiKey, string $model): array
+function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $openAiApiKey): array
 {
   $prompt = generatePrompt($commitChanges);
 
+  $model = getenv('OPENAI_MODEL') ?: 'gpt-3.5-turbo';
+
+  $length = getenv('OPENAI_MODEL') ? match (getenv('OPENAI_MODEL')) {
+    'gpt-3.5-turbo' => 400,
+    'gpt-4' => 800,
+    'gpt-4-32k' => 3200,
+  } : 400;
+
   $input_data = [
     "temperature" => 0.7,
-    "max_tokens" => 300,
+    "max_tokens" => $length,
     "frequency_penalty" => 0,
     'model' => $model,
     "messages" => [
@@ -108,11 +115,12 @@ function sendTelegram(
   $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
   $commit_url = getenv('COMMIT_URL');
 
-  $message = "Автор: $committerName ($committerEmail)\n"; //.$newTitle . '|' . $newDescription;
-  $message.= "Оригинальный комментарий: $commitTitle\n";
-  $message.= "ИИ заголовок: $newTitle\n";
-  $message.= "ИИ описание: $newDescription\n";
-  $message.= "Commit URL: $commit_url\n";
+  $message = "Автор: $committerName ($committerEmail)";
+  $message.= "\nОригинальный комментарий: $commitTitle";
+  $message.= "\nИИ заголовок: $newTitle";
+  $message.= "\nИИ описание: $newDescription";
+  $message.= "\nCommit URL: $commit_url";
+  $message.= "\n#коммиты";
 
   $data = [
     'chat_id' => $tg_chat_id,
