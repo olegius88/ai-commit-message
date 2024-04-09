@@ -125,7 +125,7 @@ function sendTelegram(
   $message = "<b>Автор:</b> $committerName ($committerEmail)\n";
   $message .= "<b>Оригинальный комментарий:</b> $commitTitle\n";
   $message .= "<b>ИИ заголовок:</b> $newTitle\n";
-  $message .= "<b>ИИ описание:</b> $newDescription\n";
+  $message .= "<b>ИИ описание:</b> <pre><code>$newDescription</code></pre>\n";
   $message .= "<b>Commit URL:</b> <a href='$commit_url'>$commit_url</a>\n\n";
   $message .= "<b>#коммиты</b>";
   if (!empty($repo_name)) {
