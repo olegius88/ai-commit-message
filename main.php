@@ -122,12 +122,12 @@ function sendTelegram(
   $commit_url = getenv('COMMIT_URL');
   $repo_name = getenv('REPO_NAME');
 
-  $message = "<b>Автор:</b> $committerName ($committerEmail)\n";
-  $message .= "<b>Оригинальный комментарий:</b> $commitTitle\n";
-  $message .= "<b>ИИ заголовок:</b> $newTitle\n";
-  $message .= "<b>ИИ описание:</b> <pre><code>$newDescription</code></pre>\n";
-  $message .= "<b>Commit URL:</b> <a href='$commit_url'>$commit_url</a>\n\n";
-  $message .= "<b>#коммиты</b>";
+  $message = "Автор: <pre><code>$committerName ($committerEmail)</code></pre>\n";
+  $message .= "Оригинальный комментарий: <pre><code>$commitTitle</code></pre>\n";
+  $message .= "ИИ заголовок: <pre><code>$newTitle</code></pre>\n";
+  $message .= "ИИ описание: <pre><code>$newDescription</code></pre>\n";
+  $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
+  $message .= "#коммиты";
   if (!empty($repo_name)) {
     $message .= " #" . toHash($committerEmail);
   }
