@@ -122,21 +122,21 @@ function sendTelegram(
   $commit_url = getenv('COMMIT_URL');
   $repo_name = getenv('REPO_NAME');
 
-  $message = "Автор: $committerName ($committerEmail)";
-  $message .= "\nОригинальный комментарий: $commitTitle";
-  $message .= "\nИИ заголовок: $newTitle";
-  $message .= "\nИИ описание: $newDescription";
-  $message .= "\nCommit URL: $commit_url";
-  $message .= "\n";
-  $message .= "\n#коммиты #" . toHash($committerEmail);
+  $message = "<b>Автор:</b> $committerName ($committerEmail)\n";
+  $message .= "<b>Оригинальный комментарий:</b> $commitTitle\n";
+  $message .= "<b>ИИ заголовок:</b> $newTitle\n";
+  $message .= "<b>ИИ описание:</b> $newDescription\n";
+  $message .= "<b>Commit URL:</b> <a href='$commit_url'>$commit_url</a>\n\n";
+  $message .= "<b>#коммиты</b>";
   if (!empty($repo_name)) {
-    $message .= " #" . toHash($repo_name);
+    $message .= " #" . toHash($committerEmail);
   }
-  $message .= " #Date_" . date('Y_m_d');
+  $message .= " #" . toHash($repo_name) . " #Date_" . date('Y_m_d');
 
   $data = [
     'chat_id' => $tg_chat_id,
     'text' => $message,
+    'parse_mode' => 'HTML'
   ];
 
   $options = [
@@ -156,6 +156,7 @@ function sendTelegram(
     echo 'Сообщение успешно отправлено в Telegram!';
   }
 }
+
 
 function getCommitChanges(string $commitSha): string
 {
