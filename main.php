@@ -122,7 +122,7 @@ function sendTelegram(
   $commit_url = getenv('COMMIT_URL');
   $repo_name = getenv('REPO_NAME');
 
-  $message = "Автор: <pre><code>$committerName ($committerEmail)</code></pre>\n";
+  $message = "Автор: $committerName ($committerEmail)\n";
   $message .= "Оригинальный комментарий: <pre><code>$commitTitle</code></pre>\n";
   $message .= "ИИ заголовок: <pre><code>$newTitle</code></pre>\n";
   $message .= "ИИ описание: <pre><code>$newDescription</code></pre>\n";
