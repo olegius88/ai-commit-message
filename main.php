@@ -179,7 +179,9 @@ function sendTelegram(
       case 'No warnings generated':
       case 'Никаких предупреждений или безопасности не обнаружено':
       case 'No warnings':
-      case 'NA':        break;
+      case 'None':
+      case 'NA':
+        break;
       default:
         $message .= "⚡️⚡️⚡️⚡️ИИ предупреждение⚡️⚡️⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
     }
