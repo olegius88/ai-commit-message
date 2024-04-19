@@ -84,7 +84,8 @@ function generatePrompt(string $commitChanges): string
      \n{$commitChanges}
      \nFormat your response as follows in Russian:
      \nCommit title: [Generated commit title]
-     \nCommit description: [Generated commit description]";
+     \nCommit description: [Generated commit description]
+     \nCommit warnings: [Generated commit warnings, if any]";
 }
 
 function extractTitleAndDescription(string $output): array
@@ -97,6 +98,8 @@ function extractTitleAndDescription(string $output): array
       $title = str_replace('Commit title: ', '', $line);
     } elseif (str_starts_with($line, 'Commit description: ')) {
       $description = str_replace('Commit description: ', '', $line);
+    } elseif (str_starts_with($line, 'Commit warnings: ')) {
+      $description = str_replace('Commit warnings: ', '', $line);
     }
   }
 
