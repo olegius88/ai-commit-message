@@ -48,7 +48,7 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
 
   $input_data = [
     "temperature" => 0.7,
-    "max_tokens" => $length,
+//    "max_tokens" => $length,
     "frequency_penalty" => 0,
     'model' => $model,
     "messages" => [
