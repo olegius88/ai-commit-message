@@ -173,8 +173,14 @@ function sendTelegram(
   $message .= "Оригинальный комментарий: <pre><code>$commitTitle</code></pre>\n";
   $message .= "ИИ заголовок: <pre><code>$newTitle</code></pre>\n";
   $message .= "ИИ описание: <pre><code>$newDescription</code></pre>\n";
-  if (!empty($newWarnings) && $newWarnings != 'Нет предупреждений.') {
-    $message .= "⚡️⚡️⚡️⚡️ИИ предупреждение⚡️⚡️⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
+  if (!empty($newWarnings)) {
+    switch (trim($newWarnings)) {
+      case 'Нет предупреждений.':
+      case 'Нет предупреждений':
+        break;
+      default:
+        $message .= "⚡️⚡️⚡️⚡️ИИ предупреждение⚡️⚡️⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
+    }
   }
   $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
   $message .= "#коммиты";
