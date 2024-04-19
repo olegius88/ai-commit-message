@@ -23,6 +23,9 @@ function main(): void
   list($newTitle, $newDescription, $newWarnings) = fetchAiGeneratedTitleAndDescription(
     getCommitChanges($commitSha),
     getenv('OPENAI_API_KEY'),
+    $committerEmail,
+    $committerName,
+    $commitTitle
   );
 
   sendTelegram($newTitle, $newDescription, $newWarnings, $committerEmail, $committerName, $commitTitle);
@@ -30,7 +33,8 @@ function main(): void
 
 main();
 
-function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $openAiApiKey): array
+function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $openAiApiKey, string $committerEmail,
+                                             string $committerName, string $commitTitle): array
 {
   $prompt = generatePrompt($commitChanges);
 
@@ -66,6 +70,43 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
 
   if ($response === false) {
     echo "::error::Error fetching AI-generated title and description." . PHP_EOL;
+    $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
+    $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
+    $commit_url = getenv('COMMIT_URL');
+    $repo_name = getenv('REPO_NAME');
+
+    $message = "⚡️⚡️⚡️ИИ не доступен⚡️⚡️⚡️\n";
+    $message .= "Автор: $committerName ($committerEmail)\n";
+    $message .= "Комментарий: <pre><code>$commitTitle</code></pre>\n";
+    $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
+    $message .= "#коммиты #безИИ";
+    if (!empty($repo_name)) {
+      $message .= " #" . toHash($committerEmail);
+    }
+    $message .= " #" . toHash($repo_name) . " #Date_" . date('Y_m_d');
+
+    $data = [
+      'chat_id' => $tg_chat_id,
+      'text' => $message,
+      'parse_mode' => 'HTML'
+    ];
+
+    $options = [
+      'http' => [
+        'method' => 'POST',
+        'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query($data),
+      ],
+    ];
+
+    $context = stream_context_create($options);
+    $result = file_get_contents("https://api.telegram.org/bot$tg_bot_token/sendMessage", false, $context);
+
+    if ($result === false) {
+      echo 'Ошибка при отправке сообщения в Telegram.';
+    } else {
+      echo 'Сообщение успешно отправлено в Telegram!';
+    }
     exit(1);
   }
 
