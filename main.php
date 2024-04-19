@@ -174,14 +174,12 @@ function sendTelegram(
   $message .= "ИИ заголовок: <pre><code>$newTitle</code></pre>\n";
   $message .= "ИИ описание: <pre><code>$newDescription</code></pre>\n";
   if (!empty($newWarnings)) {
-    switch (trim($newWarnings)) {
-      case 'Нет предупреждений.':
+    switch (str_replace(['.','/'], '', trim($newWarnings))) {
       case 'Нет предупреждений':
-      case 'No warnings generated.':
       case 'No warnings generated':
-      case 'Никаких предупреждений или безопасности не обнаружено.':
       case 'Никаких предупреждений или безопасности не обнаружено':
-        break;
+      case 'No warnings':
+      case 'NA':        break;
       default:
         $message .= "⚡️⚡️⚡️⚡️ИИ предупреждение⚡️⚡️⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
     }
