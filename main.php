@@ -20,12 +20,12 @@ function main(): void
     exit(1);
   }
 
-  list($newTitle, $newDescription) = fetchAiGeneratedTitleAndDescription(
+  list($newTitle, $newDescription, $newWarnings) = fetchAiGeneratedTitleAndDescription(
     getCommitChanges($commitSha),
     getenv('OPENAI_API_KEY'),
   );
 
-  sendTelegram($newTitle, $newDescription, $committerEmail, $committerName, $commitTitle);
+  sendTelegram($newTitle, $newDescription, $newWarnings, $committerEmail, $committerName, $commitTitle);
 }
 
 main();
@@ -92,6 +92,7 @@ function extractTitleAndDescription(string $output): array
 {
   $title = '';
   $description = '';
+  $warnings = '';
   $responseLines = explode("\n", $output);
   foreach ($responseLines as $line) {
     if (str_starts_with($line, 'Commit title: ')) {
@@ -99,11 +100,11 @@ function extractTitleAndDescription(string $output): array
     } elseif (str_starts_with($line, 'Commit description: ')) {
       $description = str_replace('Commit description: ', '', $line);
     } elseif (str_starts_with($line, 'Commit warnings: ')) {
-      $description = str_replace('Commit warnings: ', '', $line);
+      $warnings = str_replace('Commit warnings: ', '', $line);
     }
   }
 
-  return [$title, $description];
+  return [$title, $description, $warnings];
 }
 
 function toHash($str): string
@@ -115,6 +116,7 @@ function toHash($str): string
 function sendTelegram(
   string $newTitle,
   string $newDescription,
+  string $newWarnings,
   string $committerEmail,
   string $committerName,
   string $commitTitle
@@ -130,6 +132,9 @@ function sendTelegram(
   $message .= "Оригинальный комментарий: <pre><code>$commitTitle</code></pre>\n";
   $message .= "ИИ заголовок: <pre><code>$newTitle</code></pre>\n";
   $message .= "ИИ описание: <pre><code>$newDescription</code></pre>\n";
+  if (!empty($newWarnings) && $newWarnings != 'Нет предупреждений.') {
+    $message .= "⚡️⚡️⚡️⚡️ИИ предупреждение⚡️⚡️⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
+  }
   $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
   $message .= "#коммиты";
   if (!empty($repo_name)) {
