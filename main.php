@@ -77,7 +77,7 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
 
 function generatePrompt(string $commitChanges): string
 {
-  return "Based on the following line-by-line changes in a commit, please generate an informative commit title and description.
+  return "Based on the following line-by-line changes in a commit, please generate an informative commit title, description and warnings.
      \nIf you encounter a gross security breach or a very bad code, indicate it in a rude way
      \n(take as many rows as you can without violating the limit on the maximum number of tokens in the model):
      \nCommit changes:
