@@ -175,11 +175,12 @@ function sendTelegram(
   $message .= "ИИ описание: <pre><code>$newDescription</code></pre>\n";
   if (!empty($newWarnings)) {
     switch (str_replace(['.','/'], '', trim($newWarnings))) {
-      case 'Нет предупреждений':
-      case 'No warnings generated':
+      case 'Не обнаружено грубых нарушений безопасности или очень плохого кода.':
       case 'Никаких предупреждений или безопасности не обнаружено':
       case 'No specific warnings for this commit':
       case 'No warnings for this commit':
+      case 'No warnings generated':
+      case 'Нет предупреждений':
       case 'No warnings':
       case 'None':
       case 'Нет':
