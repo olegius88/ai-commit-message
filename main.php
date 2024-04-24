@@ -182,6 +182,7 @@ function sendTelegram(
       case 'No warnings for this commit':
       case 'No warnings':
       case 'None':
+      case 'Нет':
       case 'NA':
         break;
       default:
