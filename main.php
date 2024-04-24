@@ -123,7 +123,7 @@ function generatePrompt(string $commitChanges): string
      \n(take as many rows as you can without violating the limit on the maximum number of tokens in the model):
      \nCommit changes:
      \n{$commitChanges}
-     \nFormat your response as follows in Russian:
+     \nFormulate your answer as follows, be sure to use Russian:
      \nCommit title: [Generated commit title]
      \nCommit description: [Generated commit description]
      \nCommit warnings: [Generated commit warnings, if any]";
