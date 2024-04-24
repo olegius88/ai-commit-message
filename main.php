@@ -178,6 +178,8 @@ function sendTelegram(
       case 'Нет предупреждений':
       case 'No warnings generated':
       case 'Никаких предупреждений или безопасности не обнаружено':
+      case 'No specific warnings for this commit':
+      case 'No warnings for this commit':
       case 'No warnings':
       case 'None':
       case 'NA':
