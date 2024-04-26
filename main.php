@@ -183,6 +183,7 @@ function sendTelegram(
       case 'Нет предупреждений':
       case 'Не обнаружено':
       case 'No warnings':
+      case 'Отсутствуют':
       case 'None':
       case 'Нет':
       case 'NA':
