@@ -189,7 +189,7 @@ function sendTelegram(
       case 'NA':
         break;
       default:
-        $message .= "⚡️⚡️⚡️⚡️ИИ предупреждение⚡️⚡️⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
+        $message .= "⚡️⚡️ИИ предупреждение⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
     }
   }
   $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
