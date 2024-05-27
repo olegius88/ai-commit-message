@@ -198,10 +198,11 @@ function sendTelegram(
   if (!empty($committerEmail)) {
     $message .= " #" . toHash($committerEmail);
   }
-  $message .= " #REPO_" . toHash($repo_name) . " #Date_" . date('Y_m_d');
+  $message .= " #" . toHash($repo_name);
   if (!empty($branch_name)) {
-    $message .= " #BRACH_" . toHash($branch_name);
+    $message .= " #" . toHash($branch_name);
   }
+  $message .= " #Date_" . date('Y_m_d');
 
   $data = [
     'chat_id' => $tg_chat_id,
