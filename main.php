@@ -168,6 +168,7 @@ function sendTelegram(
   $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
   $commit_url = getenv('COMMIT_URL');
   $repo_name = getenv('REPO_NAME');
+  $branch_name = getenv('BRANCH_NAME');
 
   $message = "Автор: $committerName ($committerEmail)\n";
   $message .= "Оригинальный комментарий: <pre><code>$commitTitle</code></pre>\n";
@@ -194,10 +195,13 @@ function sendTelegram(
   }
   $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
   $message .= "#коммиты";
-  if (!empty($repo_name)) {
+  if (!empty($committerEmail)) {
     $message .= " #" . toHash($committerEmail);
   }
-  $message .= " #" . toHash($repo_name) . " #Date_" . date('Y_m_d');
+  $message .= " #REPO_" . toHash($repo_name) . " #Date_" . date('Y_m_d');
+  if (!empty($branch_name)) {
+    $message .= " #BRACH_" . toHash($branch_name);
+  }
 
   $data = [
     'chat_id' => $tg_chat_id,
