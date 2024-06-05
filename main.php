@@ -175,7 +175,7 @@ function sendTelegram(
   $message .= "Оригинальный комментарий: <pre><code>$commitTitle</code></pre>\n";
   $message .= "ИИ заголовок: <pre><code>$newTitle</code></pre>\n";
   $message .= "ИИ описание: <pre><code>$newDescription</code></pre>\n";
-  $message .= "Изменения в коммите: <pre><code>$commitChangeStats</code></pre>\n";
+  $message .= "Статистика изменений: <pre><code>$commitChangeStats</code></pre>\n";
   if (!empty($newWarnings)) {
     switch (str_replace(['.','/'], '', trim($newWarnings))) {
       case 'Не обнаружено грубых нарушений безопасности или очень плохого кода.':
