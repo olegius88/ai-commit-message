@@ -42,10 +42,11 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
   $model = getenv('OPENAI_MODEL') ?: 'gpt-4o-mini';
 
   $length = getenv('OPENAI_MODEL') ? match (getenv('OPENAI_MODEL')) {
-    'gpt-3.5-turbo' => 400,
-    'gpt-4' => 800,
-    'gpt-4-32k' => 3200,
-  } : 400;
+    'gpt-3.5-turbo' => 4096,  // до 4096 токенов
+    'gpt-4' => 8192,          // до 8192 токенов
+    'gpt-4-32k' => 32768,     // до 32768 токенов
+    'gpt-4o-mini' => 8192,
+  } : 4096;
 
   $input_data = [
     "temperature" => 0.7,
