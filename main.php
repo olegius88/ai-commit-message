@@ -38,7 +38,7 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
 {
   $prompt = generatePrompt($commitChanges);
 
-  $model = getenv('OPENAI_MODEL') ?: 'gpt-3.5-turbo';
+  $model = getenv('OPENAI_MODEL') ?: 'gpt-4o-mini';
 
   $length = getenv('OPENAI_MODEL') ? match (getenv('OPENAI_MODEL')) {
     'gpt-3.5-turbo' => 400,
