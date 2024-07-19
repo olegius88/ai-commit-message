@@ -15,8 +15,7 @@ function main(): void
   $model = getenv('OPENAI_MODEL') ?: 'gpt-3.5-turbo'; // Default to gpt-3.5-turbo if no environment variable is set
 
   if (!in_array($model, ['gpt-4', 'gpt-4-32k', 'gpt-3.5-turbo'])) {
-    echo "::error::Invalid model specified. Please use either gpt-3.5-turbo', 'gpt-4' or 'gpt-4-32k'." .
-      PHP_EOL;
+    echo "::error::Invalid model specified. Please use either gpt-3.5-turbo', 'gpt-4' or 'gpt-4-32k'." . PHP_EOL;
     exit(1);
   }
 
@@ -28,7 +27,9 @@ function main(): void
     $commitTitle
   );
 
-  sendTelegram($newTitle, $newDescription, $newWarnings, $committerEmail, $committerName, $commitTitle);
+  $commitChangeStats = getCommitChangeStats($commitSha);
+
+  sendTelegram($newTitle, $newDescription, $newWarnings, $committerEmail, $committerName, $commitTitle, $commitChangeStats);
 }
 
 main();
@@ -153,14 +154,14 @@ function toHash($str): string
   return str_replace([':', ';', '-', ',', '.'], '_', $str);
 }
 
-
 function sendTelegram(
   string $newTitle,
   string $newDescription,
   string $newWarnings,
   string $committerEmail,
   string $committerName,
-  string $commitTitle
+  string $commitTitle,
+  string $commitChangeStats
 ): void
 {
 
@@ -168,11 +169,13 @@ function sendTelegram(
   $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
   $commit_url = getenv('COMMIT_URL');
   $repo_name = getenv('REPO_NAME');
+  $branch_name = getenv('BRANCH_NAME');
 
   $message = "Автор: $committerName ($committerEmail)\n";
   $message .= "Оригинальный комментарий: <pre><code>$commitTitle</code></pre>\n";
   $message .= "ИИ заголовок: <pre><code>$newTitle</code></pre>\n";
   $message .= "ИИ описание: <pre><code>$newDescription</code></pre>\n";
+  $message .= "Статистика изменений: <pre><code>$commitChangeStats</code></pre>\n";
   if (!empty($newWarnings)) {
     switch (str_replace(['.','/'], '', trim($newWarnings))) {
       case 'Не обнаружено грубых нарушений безопасности или очень плохого кода.':
@@ -189,15 +192,19 @@ function sendTelegram(
       case 'NA':
         break;
       default:
-        $message .= "⚡️⚡️⚡️⚡️ИИ предупреждение⚡️⚡️⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
+        $message .= "⚡️⚡️ИИ предупреждение⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
     }
   }
   $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
   $message .= "#коммиты";
-  if (!empty($repo_name)) {
+  if (!empty($committerEmail)) {
     $message .= " #" . toHash($committerEmail);
   }
-  $message .= " #" . toHash($repo_name) . " #Date_" . date('Y_m_d');
+  $message .= " #" . toHash($repo_name);
+  if (!empty($branch_name)) {
+    $message .= " #" . toHash($branch_name);
+  }
+  $message .= " #Date_" . date('Y_m_d');
 
   $data = [
     'chat_id' => $tg_chat_id,
@@ -223,7 +230,6 @@ function sendTelegram(
   }
 }
 
-
 function getCommitChanges(string $commitSha): string
 {
   $command = "git diff {$commitSha}~ {$commitSha} | grep -v 'warning'";
@@ -243,4 +249,18 @@ function getCommitChanges(string $commitSha): string
 
   $output = array_slice(explode("\n", $output), 0, $length);
   return implode("\n", $output);
+}
+
+function getCommitChangeStats(string $commitSha): string
+{
+  $command = "git diff --shortstat {$commitSha}~ {$commitSha}";
+
+  $output = shell_exec($command);
+
+  if ($output === null) {
+    echo "Error: Could not run git diff --shortstat." . PHP_EOL;
+    exit(1);
+  }
+
+  return trim($output);
 }
