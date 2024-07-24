@@ -12,10 +12,17 @@ function main(): void
   $committerName = exec("git log -1 --pretty=%cn $commitSha");
   $committerEmail = exec("git log -1 --pretty=%ce $commitSha");
 
-  $model = getenv('OPENAI_MODEL') ?: 'gpt-3.5-turbo'; // Default to gpt-3.5-turbo if no environment variable is set
+  // Добавляем проверку на GitHub коммиты
+  if ($committerName === 'GitHub' && $committerEmail === 'noreply@github.com') {
+    $authorInfo = getRealAuthorInfo($commitSha);
+    $committerName = $authorInfo['name'];
+    $committerEmail = $authorInfo['email'];
+  }
 
-  if (!in_array($model, ['gpt-4', 'gpt-4-32k', 'gpt-3.5-turbo'])) {
-    echo "::error::Invalid model specified. Please use either gpt-3.5-turbo', 'gpt-4' or 'gpt-4-32k'." . PHP_EOL;
+  $model = getenv('OPENAI_MODEL') ?: 'gpt-4o-mini'; // Default to gpt-4o-mini if no environment variable is set
+
+  if (!in_array($model, ['gpt-4', 'gpt-4-32k', 'gpt-4o-mini'])) {
+    echo "::error::Invalid model specified. Please use either gpt-4o-mini', 'gpt-4' or 'gpt-4-32k'." . PHP_EOL;
     exit(1);
   }
 
@@ -243,10 +250,11 @@ function getCommitChanges(string $commitSha): string
   }
 
   $length = getenv('OPENAI_MODEL') ? match (getenv('OPENAI_MODEL')) {
-    'gpt-3.5-turbo' => 400,
-    'gpt-4' => 800,
-    'gpt-4-32k' => 3200,
-  } : 400;
+    'gpt-3.5-turbo' => 4096,  // до 4096 токенов
+    'gpt-4' => 8192,          // до 8192 токенов
+    'gpt-4-32k' => 32768,     // до 32768 токенов
+    'gpt-4o-mini' => 8192,
+  } : 4096;
 
   $output = array_slice(explode("\n", $output), 0, $length);
   return implode("\n", $output);
@@ -264,4 +272,25 @@ function getCommitChangeStats(string $commitSha): string
   }
 
   return trim($output);
+}
+
+function getRealAuthorInfo(string $commitSha): array
+{
+  $command = "git log $commitSha --pretty=format:'%an <%ae>'";
+  $output = shell_exec($command);
+
+  if ($output === null) {
+    echo "Error: Could not retrieve author info." . PHP_EOL;
+    exit(1);
+  }
+
+  $lines = explode("\n", $output);
+  foreach ($lines as $line) {
+    if (!str_contains($line, 'GitHub') && !str_contains($line, 'noreply@github.com')) {
+      list($name, $email) = explode('<', $line);
+      return ['name' => trim($name), 'email' => trim($email, '> ')];
+    }
+  }
+
+  return ['name' => 'Unknown', 'email' => 'unknown@example.com'];
 }
