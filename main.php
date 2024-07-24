@@ -21,8 +21,8 @@ function main(): void
 
   $model = getenv('OPENAI_MODEL') ?: 'gpt-4o-mini'; // Default to gpt-4o-mini if no environment variable is set
 
-  if (!in_array($model, ['gpt-4', 'gpt-4-32k', 'gpt-4o-mini'])) {
-    echo "::error::Invalid model specified. Please use either gpt-4o-mini', 'gpt-4' or 'gpt-4-32k'." . PHP_EOL;
+  if (!in_array($model, ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-32k', 'gpt-4o-mini'])) {
+    echo "::error::Invalid model specified. Please use either 'gpt-3.5-turbo', 'gpt-4o-mini', 'gpt-4' or 'gpt-4-32k'." . PHP_EOL;
     exit(1);
   }
 
@@ -47,8 +47,9 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
   $prompt = generatePrompt($commitChanges);
 
   $model = getenv('OPENAI_MODEL') ?: 'gpt-4o-mini';
+  if ($model == 'gpt-3.5-turbo') $model = 'gpt-4o-mini';
 
-  $length = getenv('OPENAI_MODEL') ? match (getenv('OPENAI_MODEL')) {
+  $length = $model ? match ($model) {
     'gpt-3.5-turbo' => 4096,  // до 4096 токенов
     'gpt-4' => 8192,          // до 8192 токенов
     'gpt-4-32k' => 32768,     // до 32768 токенов
@@ -249,7 +250,10 @@ function getCommitChanges(string $commitSha): string
     exit(1);
   }
 
-  $length = getenv('OPENAI_MODEL') ? match (getenv('OPENAI_MODEL')) {
+  $model = getenv('OPENAI_MODEL') ?: 'gpt-4o-mini';
+  if ($model == 'gpt-3.5-turbo') $model = 'gpt-4o-mini';
+
+  $length = $model ? match ($model) {
     'gpt-3.5-turbo' => 4096,  // до 4096 токенов
     'gpt-4' => 8192,          // до 8192 токенов
     'gpt-4-32k' => 32768,     // до 32768 токенов
