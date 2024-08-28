@@ -146,11 +146,16 @@ function generatePrompt(string $commitChanges): string
 
 function extractTitleAndDescription(string $output): array
 {
+  // Инициализируем переменные
   $title = '';
   $description = '';
   $warnings = '';
   $examples = '';
+
+  // Разделяем входной текст на строки
   $responseLines = explode("\n", $output);
+
+  // Проходим по каждой строке
   foreach ($responseLines as $line) {
     if (str_starts_with($line, 'Commit title: ')) {
       $title = str_replace('Commit title: ', '', $line);
@@ -159,12 +164,20 @@ function extractTitleAndDescription(string $output): array
     } elseif (str_starts_with($line, 'Commit warnings: ')) {
       $warnings = str_replace('Commit warnings: ', '', $line);
     } elseif (str_starts_with($line, 'Commit examples: ')) {
-      $examples = str_replace('Commit examples: ', '', $line);
+      // Пример может занимать несколько строк, поэтому собираем все строки, начиная с этой
+      $examples .= str_replace('Commit examples: ', '', $line) . "\n";
+    } elseif ($examples !== '') {
+      // Добавляем строки к примерам, если они продолжаются
+      $examples .= $line . "\n";
     }
   }
 
+  // Убираем лишние пробелы и переносы строк
+  $examples = trim($examples);
+
   return [$title, $description, $warnings, $examples];
 }
+
 
 function toHash($str): string
 {
