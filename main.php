@@ -78,6 +78,9 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
     ]
   ]));
 
+  echo('$response').PHP_EOL;
+  print_r($response);
+
   if ($response === false) {
     echo "::error::Error fetching AI-generated title and description." . PHP_EOL;
     $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
@@ -122,6 +125,7 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
 
   $complete = json_decode($response, true);
   $output = $complete['choices'][0]['message']['content'];
+  echo('$output').PHP_EOL;
   print_r($output);
   return extractTitleAndDescription($output);
 }
