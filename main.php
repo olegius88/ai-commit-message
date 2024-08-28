@@ -26,7 +26,7 @@ function main(): void
     exit(1);
   }
 
-  list($newTitle, $newDescription, $newWarnings) = fetchAiGeneratedTitleAndDescription(
+  list($newTitle, $newDescription, $newWarnings, $newExamples) = fetchAiGeneratedTitleAndDescription(
     getCommitChanges($commitSha),
     getenv('OPENAI_API_KEY'),
     $committerEmail,
@@ -36,7 +36,7 @@ function main(): void
 
   $commitChangeStats = getCommitChangeStats($commitSha);
 
-  sendTelegram($newTitle, $newDescription, $newWarnings, $committerEmail, $committerName, $commitTitle, $commitChangeStats);
+  sendTelegram($newTitle, $newDescription, $newWarnings, $newExamples, $committerEmail, $committerName, $commitTitle, $commitChangeStats);
 }
 
 main();
@@ -128,15 +128,16 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
 
 function generatePrompt(string $commitChanges): string
 {
-  return "Based on the following line-by-line changes in a commit, please generate an informative commit title, description and warnings.
-     \nIf you encounter a gross security breach or a very bad code, indicate it in a rude way
-     \n(take as many rows as you can without violating the limit on the maximum number of tokens in the model):
+  return "Based on the following line-by-line changes in the commit, please create an informative commit title, description, and warnings.
+     \nIf you encounter a gross security breach or very bad code, point it out in a rough way and provide detailed examples of how to fix it or examples of the correct option without violations
+     \n(take as many lines as you can without violating the limits on the maximum number of tokens in the model).:
      \nCommit changes:
      \n{$commitChanges}
      \nFormulate your answer as follows, be sure to use Russian:
      \nCommit title: [Generated commit title]
      \nCommit description: [Generated commit description]
-     \nCommit warnings: [Generated commit warnings, if any]";
+     \nCommit warnings: [Generated commit warnings, if any]
+     \nCommit examples: [Generated examples of correct fixing of the commit warning, if any]";
 }
 
 function extractTitleAndDescription(string $output): array
@@ -144,6 +145,7 @@ function extractTitleAndDescription(string $output): array
   $title = '';
   $description = '';
   $warnings = '';
+  $examples = '';
   $responseLines = explode("\n", $output);
   foreach ($responseLines as $line) {
     if (str_starts_with($line, 'Commit title: ')) {
@@ -152,10 +154,12 @@ function extractTitleAndDescription(string $output): array
       $description = str_replace('Commit description: ', '', $line);
     } elseif (str_starts_with($line, 'Commit warnings: ')) {
       $warnings = str_replace('Commit warnings: ', '', $line);
+    } elseif (str_starts_with($line, 'Commit examples: ')) {
+      $examples = str_replace('Commit examples: ', '', $line);
     }
   }
 
-  return [$title, $description, $warnings];
+  return [$title, $description, $warnings, $examples];
 }
 
 function toHash($str): string
@@ -167,6 +171,7 @@ function sendTelegram(
   string $newTitle,
   string $newDescription,
   string $newWarnings,
+  string $newExamples,
   string $committerEmail,
   string $committerName,
   string $commitTitle,
@@ -202,6 +207,14 @@ function sendTelegram(
         break;
       default:
         $message .= "⚡️⚡️ИИ предупреждение⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
+    }
+  }
+  if (!empty($newWarnings)) {
+    switch (str_replace(['.','/'], '', trim($newExamples))) {
+//      case 'NA':
+//        break;
+      default:
+        $message .= "⚡️⚡️ИИ пример исправлений⚡️⚡️: <pre><code>$newExamples</code></pre>\n";
     }
   }
   $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
