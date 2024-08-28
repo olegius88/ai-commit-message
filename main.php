@@ -36,7 +36,16 @@ function main(): void
 
   $commitChangeStats = getCommitChangeStats($commitSha);
 
-  sendTelegram($newTitle, $newDescription, $newWarnings, $newExamples, $committerEmail, $committerName, $commitTitle, $commitChangeStats);
+  sendTelegram(
+    $newTitle,
+    $newDescription,
+    $newWarnings,
+    $newExamples,
+    $committerEmail,
+    $committerName,
+    $commitTitle,
+    $commitChangeStats
+  );
 }
 
 main();
@@ -98,28 +107,8 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
     }
     $message .= " #" . toHash($repo_name) . " #Date_" . date('Y_m_d');
 
-    $data = [
-      'chat_id' => $tg_chat_id,
-      'text' => $message,
-      'parse_mode' => 'HTML'
-    ];
+    sendTelegramMessage($tg_chat_id, $message);
 
-    $options = [
-      'http' => [
-        'method' => 'POST',
-        'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-        'content' => http_build_query($data),
-      ],
-    ];
-
-    $context = stream_context_create($options);
-    $result = file_get_contents("https://api.telegram.org/bot$tg_bot_token/sendMessage", false, $context);
-
-    if ($result === false) {
-      echo 'Ошибка при отправке сообщения в Telegram.';
-    } else {
-      echo 'Сообщение успешно отправлено в Telegram!';
-    }
     exit(1);
   }
 
@@ -178,10 +167,77 @@ function extractTitleAndDescription(string $output): array
   return [$title, $description, $warnings, $examples];
 }
 
-
 function toHash($str): string
 {
   return str_replace([':', ';', '-', ',', '.'], '_', $str);
+}
+
+function sendTelegramMessage(string $chatId, string $message): void
+{
+  $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
+
+  // Telegram API message sending URL
+  $url = "https://api.telegram.org/bot$tg_bot_token/sendMessage";
+
+  // Check if the message is too long
+  $maxLength = 4096; // Maximum length for Telegram messages
+  $splitMarker = "⚡️⚡️ИИ пример исправлений⚡️⚡️";
+
+  // Split message by the custom split marker
+  $messageParts = preg_split('/(' . preg_quote($splitMarker, '/') . ')/u', $message);
+
+  foreach ($messageParts as $part) {
+    // If the part is longer than the max length, further split it
+    if (strlen($part) > $maxLength) {
+      $subParts = str_split($part, $maxLength);
+      foreach ($subParts as $subPart) {
+        $data = [
+          'chat_id' => $chatId,
+          'text' => $subPart,
+          'parse_mode' => 'HTML'
+        ];
+
+        $options = [
+          'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => http_build_query($data),
+          ],
+        ];
+
+        $context = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+
+        if ($result === false) {
+          echo 'Ошибка при отправке сообщения в Telegram.';
+        }
+      }
+    } else {
+      // Send message directly if it's within the max length
+      $data = [
+        'chat_id' => $chatId,
+        'text' => $part,
+        'parse_mode' => 'HTML'
+      ];
+
+      $options = [
+        'http' => [
+          'method' => 'POST',
+          'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+          'content' => http_build_query($data),
+        ],
+      ];
+
+      $context = stream_context_create($options);
+      $result = file_get_contents($url, false, $context);
+
+      if ($result === false) {
+        echo 'Ошибка при отправке сообщения в Telegram.';
+      }
+    }
+  }
+
+  echo 'Сообщение успешно отправлено в Telegram!';
 }
 
 function sendTelegram(
@@ -195,8 +251,6 @@ function sendTelegram(
   string $commitChangeStats
 ): void
 {
-
-  $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
   $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
   $commit_url = getenv('COMMIT_URL');
   $repo_name = getenv('REPO_NAME');
@@ -245,28 +299,7 @@ function sendTelegram(
   }
   $message .= " #Date_" . date('Y_m_d');
 
-  $data = [
-    'chat_id' => $tg_chat_id,
-    'text' => $message,
-    'parse_mode' => 'HTML'
-  ];
-
-  $options = [
-    'http' => [
-      'method' => 'POST',
-      'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-      'content' => http_build_query($data),
-    ],
-  ];
-
-  $context = stream_context_create($options);
-  $result = file_get_contents("https://api.telegram.org/bot$tg_bot_token/sendMessage", false, $context);
-
-  if ($result === false) {
-    echo 'Ошибка при отправке сообщения в Telegram.';
-  } else {
-    echo 'Сообщение успешно отправлено в Telegram!';
-  }
+  sendTelegramMessage($tg_chat_id, $message);
 }
 
 function getCommitChanges(string $commitSha): string
