@@ -182,8 +182,11 @@ function sendTelegramMessage(string $chatId, string $message): void
   print_r($message);
 
   $htmlMessage = markdownToHtml($message);
+  echo('----------').PHP_EOL;
   echo('sendTelegramMessage|strlen($htmlMessage)=').PHP_EOL;
   print_r(strlen($htmlMessage));
+  echo('sendTelegramMessage|$htmlMessage=').PHP_EOL;
+  print_r($htmlMessage);
 
   $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
 
