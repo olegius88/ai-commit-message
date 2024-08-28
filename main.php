@@ -209,7 +209,7 @@ function sendTelegram(
         $message .= "⚡️⚡️ИИ предупреждение⚡️⚡️: <pre><code>$newWarnings</code></pre>\n";
     }
   }
-  if (!empty($newWarnings)) {
+  if (!empty($newExamples)) {
     switch (str_replace(['.','/'], '', trim($newExamples))) {
 //      case 'NA':
 //        break;
