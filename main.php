@@ -174,7 +174,7 @@ function toHash($str): string
 
 function sendTelegramMessage(string $chatId, string $message): void
 {
-  echo('$message').PHP_EOL;
+  echo('$message=').PHP_EOL;
   print_r($message);
 
   $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
