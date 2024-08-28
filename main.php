@@ -87,10 +87,12 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
     ]
   ]));
 
+  echo('----------').PHP_EOL;
   echo('$response').PHP_EOL;
   print_r($response);
 
   if ($response === false) {
+    echo('----------').PHP_EOL;
     echo "::error::Error fetching AI-generated title and description." . PHP_EOL;
     $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
     $tg_chat_id = getenv('TELEGRAM_CHAT_ID');
@@ -114,8 +116,9 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
 
   $complete = json_decode($response, true);
   $output = $complete['choices'][0]['message']['content'];
-  echo('$output').PHP_EOL;
-  print_r($output);
+//  echo('----------').PHP_EOL;
+//  echo('$output').PHP_EOL;
+//  print_r($output);
   return extractTitleAndDescription($output);
 }
 
@@ -174,7 +177,8 @@ function toHash($str): string
 
 function sendTelegramMessage(string $chatId, string $message): void
 {
-  echo('$message=').PHP_EOL;
+  echo('----------').PHP_EOL;
+  echo('sendTelegramMessage|$message=').PHP_EOL;
   print_r($message);
 
   $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
@@ -186,17 +190,44 @@ function sendTelegramMessage(string $chatId, string $message): void
   $maxLength = 4096; // Maximum length for Telegram messages
   $splitMarker = "⚡️⚡️ИИ пример исправлений⚡️⚡️";
 
-  // Split message by the custom split marker
-  $messageParts = preg_split('/(' . preg_quote($splitMarker, '/') . ')/u', $message);
 
-  foreach ($messageParts as $part) {
-    // If the part is longer than the max length, further split it
-    if (strlen($part) > $maxLength) {
-      $subParts = str_split($part, $maxLength);
-      foreach ($subParts as $subPart) {
+  if (strlen($message) > $maxLength) {
+    // Split message by the custom split marker
+    $messageParts = preg_split('/(' . preg_quote($splitMarker, '/') . ')/u', $message);
+    echo('sendTelegramMessage|count($messageParts)=').PHP_EOL;
+    print_r(count($messageParts));
+    foreach ($messageParts as $part) {
+      // If the part is longer than the max length, further split it
+      if (strlen($part) > $maxLength) {
+        $subParts = str_split($part, $maxLength);
+        foreach ($subParts as $subPart) {
+          $data = [
+            'chat_id' => $chatId,
+            'text' => $subPart,
+            'parse_mode' => 'HTML'
+          ];
+
+          $options = [
+            'http' => [
+              'method' => 'POST',
+              'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+              'content' => http_build_query($data),
+            ],
+          ];
+
+          $context = stream_context_create($options);
+          $result = file_get_contents($url, false, $context);
+
+          if ($result === false) {
+            echo 'Ошибка при отправке сообщения в Telegram.';
+            exit(1);
+          }
+        }
+      } else {
+        // Send message directly if it's within the max length
         $data = [
           'chat_id' => $chatId,
-          'text' => $subPart,
+          'text' => $part,
           'parse_mode' => 'HTML'
         ];
 
@@ -213,32 +244,35 @@ function sendTelegramMessage(string $chatId, string $message): void
 
         if ($result === false) {
           echo 'Ошибка при отправке сообщения в Telegram.';
+          exit(1);
         }
       }
-    } else {
-      // Send message directly if it's within the max length
-      $data = [
-        'chat_id' => $chatId,
-        'text' => $part,
-        'parse_mode' => 'HTML'
-      ];
+    }
+  } else {
+    // Send message directly if it's within the max length
+    $data = [
+      'chat_id' => $chatId,
+      'text' => $message,
+      'parse_mode' => 'HTML'
+    ];
 
-      $options = [
-        'http' => [
-          'method' => 'POST',
-          'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-          'content' => http_build_query($data),
-        ],
-      ];
+    $options = [
+      'http' => [
+        'method' => 'POST',
+        'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query($data),
+      ],
+    ];
 
-      $context = stream_context_create($options);
-      $result = file_get_contents($url, false, $context);
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
 
-      if ($result === false) {
-        echo 'Ошибка при отправке сообщения в Telegram.';
-      }
+    if ($result === false) {
+      echo 'Ошибка при отправке сообщения в Telegram.';
+      exit(1);
     }
   }
+
 
   echo 'Сообщение успешно отправлено в Telegram!';
 }
