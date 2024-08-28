@@ -137,7 +137,7 @@ function generatePrompt(string $commitChanges): string
      \nCommit title: [Generated commit title]
      \nCommit description: [Generated commit description]
      \nCommit warnings: [Generated commit warnings, if any]
-     \nCommit examples: [Generated examples of correct fixing of the commit warning, if any]";
+     \nCommit examples: [Generated examples of correct fixing of the Generated commit warnings, if any]";
 }
 
 function extractTitleAndDescription(string $output): array
