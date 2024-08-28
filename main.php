@@ -122,7 +122,7 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
 
   $complete = json_decode($response, true);
   $output = $complete['choices'][0]['message']['content'];
-
+  print_r($output);
   return extractTitleAndDescription($output);
 }
 
