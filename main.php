@@ -219,6 +219,7 @@ function sendTelegramMessage(string $chatId, string $message): void
               'method' => 'POST',
               'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
               'content' => http_build_query($data),
+              'ignore_errors' => true, // Чтобы получить ответ в случае ошибки
             ],
           ];
 
@@ -243,6 +244,7 @@ function sendTelegramMessage(string $chatId, string $message): void
             'method' => 'POST',
             'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
             'content' => http_build_query($data),
+            'ignore_errors' => true, // Чтобы получить ответ в случае ошибки
           ],
         ];
 
@@ -268,6 +270,7 @@ function sendTelegramMessage(string $chatId, string $message): void
         'method' => 'POST',
         'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
         'content' => http_build_query($data),
+        'ignore_errors' => true, // Чтобы получить ответ в случае ошибки
       ],
     ];
 
