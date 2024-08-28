@@ -181,6 +181,8 @@ function sendTelegramMessage(string $chatId, string $message): void
   echo('sendTelegramMessage|$message=').PHP_EOL;
   print_r($message);
 
+  $htmlMessage = markdownToHtml($message);
+
   $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
 
   // Telegram API message sending URL
@@ -191,9 +193,9 @@ function sendTelegramMessage(string $chatId, string $message): void
   $splitMarker = "⚡️⚡️ИИ пример исправлений⚡️⚡️";
 
 
-  if (strlen($message) > $maxLength) {
+  if (strlen($htmlMessage) > $maxLength) {
     // Split message by the custom split marker
-    $messageParts = preg_split('/(' . preg_quote($splitMarker, '/') . ')/u', $message);
+    $messageParts = preg_split('/(' . preg_quote($splitMarker, '/') . ')/u', $htmlMessage);
     echo('sendTelegramMessage|count($messageParts)=').PHP_EOL;
     print_r(count($messageParts));
     foreach ($messageParts as $part) {
@@ -252,7 +254,7 @@ function sendTelegramMessage(string $chatId, string $message): void
     // Send message directly if it's within the max length
     $data = [
       'chat_id' => $chatId,
-      'text' => $message,
+      'text' => $htmlMessage,
       'parse_mode' => 'HTML'
     ];
 
@@ -397,4 +399,29 @@ function getRealAuthorInfo(string $commitSha): array
   }
 
   return ['name' => 'Unknown', 'email' => 'unknown@example.com'];
+}
+
+function markdownToHtml(string $markdown): string
+{
+  // Заменяем Markdown-разметку на HTML
+  $html = $markdown;
+
+  // Заменяем заголовки
+  $html = preg_replace('/^(\d+)\.\s/', '<p>$1.</p>', $html);
+
+  // Заменяем списки
+  $html = preg_replace('/^\s*-\s+(.*)$/m', '<li>$1</li>', $html);
+  $html = preg_replace('/<\/li>\s*<\/li>/', '</li><li>', $html);  // Fix double </li> issue
+  $html = preg_replace('/<li>(.*)<\/li>/', '<ul><li>$1</li></ul>', $html); // Wrap lists in <ul>
+
+  // Заменяем примеры кода
+  $html = preg_replace('/```(.*?)```/s', '<pre><code>$1</code></pre>', $html);
+
+  // Заменяем выделение жирным
+  $html = preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $html);
+
+  // Заменяем выделение курсивом
+  $html = preg_replace('/\*(.*?)\*/', '<i>$1</i>', $html);
+
+  return $html;
 }
