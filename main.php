@@ -182,6 +182,8 @@ function sendTelegramMessage(string $chatId, string $message): void
   print_r($message);
 
   $htmlMessage = markdownToHtml($message);
+  echo('sendTelegramMessage|strlen($htmlMessage)=').PHP_EOL;
+  print_r(strlen($htmlMessage));
 
   $tg_bot_token = getenv('TELEGRAM_BOT_TOKEN');
 
@@ -189,7 +191,7 @@ function sendTelegramMessage(string $chatId, string $message): void
   $url = "https://api.telegram.org/bot$tg_bot_token/sendMessage";
 
   // Check if the message is too long
-  $maxLength = 4096; // Maximum length for Telegram messages
+  $maxLength = 3096; // Maximum length for Telegram messages
   $splitMarker = "⚡️⚡️ИИ пример исправлений⚡️⚡️";
 
 
