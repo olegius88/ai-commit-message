@@ -426,7 +426,9 @@ function markdownToHtml(string $markdown): string
   $html = preg_replace('/^(\d+)\.\s/', '<p>$1.</p>', $html);
 
   // Заменяем списки
-  $html = preg_replace('/^\s*-\s+(.*)$/m', '• $1', $html); // Используем точку вместо <li> для простого списка
+  $html = preg_replace('/^\s*-\s+(.*)$/m', '<li>$1</li>', $html);
+  $html = preg_replace('/<\/li>\s*<\/li>/', '</li><li>', $html);  // Fix double </li> issue
+  $html = preg_replace('/(<li>.*<\/li>)/s', '<ul>$1</ul>', $html); // Wrap lists in <ul>
 
   // Заменяем примеры кода
   $html = preg_replace('/```(.*?)```/s', '<pre><code>$1</code></pre>', $html);
@@ -440,7 +442,7 @@ function markdownToHtml(string $markdown): string
   return $html;
 }
 
-function tgResponseHandler(string $result, string $url, string $chatId): string
+function tgResponseHandler(string $result, string $url, string $chatId): void
 {
   $result = json_decode($result, true);
   if (!$result['ok']) {
