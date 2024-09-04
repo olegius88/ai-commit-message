@@ -226,6 +226,8 @@ function sendTelegramMessage(string $chatId, string $message): void
           $context = stream_context_create($options);
           $result = file_get_contents($url, false, $context);
 
+          tgResponseHandler($result, $url, $chatId);
+
           if ($result === false) {
             echo 'Ошибка при отправке сообщения в Telegram.';
             exit(1);
@@ -250,6 +252,8 @@ function sendTelegramMessage(string $chatId, string $message): void
 
         $context = stream_context_create($options);
         $result = file_get_contents($url, false, $context);
+
+        tgResponseHandler($result, $url, $chatId);
 
         if ($result === false) {
           echo 'Ошибка при отправке сообщения в Telegram.';
@@ -278,6 +282,8 @@ function sendTelegramMessage(string $chatId, string $message): void
     $result = file_get_contents($url, false, $context);
     echo('----------').PHP_EOL;
     echo '$result='.$result;
+
+    tgResponseHandler($result, $url, $chatId);
 
     if ($result === false) {
       echo 'Ошибка при отправке сообщения в Telegram.';
@@ -432,4 +438,47 @@ function markdownToHtml(string $markdown): string
   $html = preg_replace('/\*(.*?)\*/', '<i>$1</i>', $html);
 
   return $html;
+}
+
+function tgResponseHandler(string $result, string $url, string $chatId): string
+{
+  $result = json_decode($result, true);
+  if (!$result['ok']) {
+    $errorMessage = "⚠️ Ошибка при отправке сообщения в Telegram:\n";
+    $errorMessage .= "Код ошибки: {$result['error_code']}\n";
+    $errorMessage .= "Описание ошибки: {$result['description']}\n";
+
+    // Отправляем сообщение об ошибке в Telegram
+    $errorData = [
+      'chat_id' => $chatId,
+      'text' => $errorMessage,
+      'parse_mode' => 'HTML'
+    ];
+
+    $errorOptions = [
+      'http' => [
+        'method' => 'POST',
+        'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query($errorData),
+        'ignore_errors' => true,
+      ],
+    ];
+
+    $errorContext = stream_context_create($errorOptions);
+    $errorResult = file_get_contents($url, false, $errorContext);
+
+    if ($errorResult === false) {
+      echo 'Ошибка при отправке сообщения об ошибке в Telegram.' . PHP_EOL;
+      exit(1);
+    }
+
+    $errorResult = json_decode($errorResult, true);
+    if (!$errorResult['ok']) {
+      echo 'Не удалось отправить сообщение об ошибке в Telegram.' . PHP_EOL;
+      exit(1);
+    }
+
+    echo 'Сообщение об ошибке успешно отправлено в Telegram!' . PHP_EOL;
+    exit(1);
+  }
 }
