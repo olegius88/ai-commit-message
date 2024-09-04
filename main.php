@@ -430,6 +430,14 @@ function markdownToHtml(string $markdown): string
   $html = preg_replace('/<\/li>\s*<\/li>/', '</li><li>', $html);  // Fix double </li> issue
   $html = preg_replace('/(<li>.*<\/li>)/s', '<ul>$1</ul>', $html); // Wrap lists in <ul>
 
+  // Преобразуем <ul><li>...</li></ul> в строки с точками
+  $html = preg_replace_callback('/<ul>(.*?)<\/ul>/s', function ($matches) {
+    // Преобразуем элементы списка в строки с точками
+    $listItems = $matches[1];
+    $listItems = preg_replace('/<li>(.*?)<\/li>/', "• $1\n", $listItems);
+    return $listItems;
+  }, $html);
+
   // Заменяем примеры кода
   $html = preg_replace('/```(.*?)```/s', '<pre><code>$1</code></pre>', $html);
 
