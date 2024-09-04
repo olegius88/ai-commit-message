@@ -420,9 +420,7 @@ function markdownToHtml(string $markdown): string
   $html = preg_replace('/^(\d+)\.\s/', '<p>$1.</p>', $html);
 
   // Заменяем списки
-  $html = preg_replace('/^\s*-\s+(.*)$/m', '<li>$1</li>', $html);
-  $html = preg_replace('/<\/li>\s*<\/li>/', '</li><li>', $html);  // Fix double </li> issue
-  $html = preg_replace('/<li>(.*)<\/li>/', '<ul><li>$1</li></ul>', $html); // Wrap lists in <ul>
+  $html = preg_replace('/^\s*-\s+(.*)$/m', '• $1', $html); // Используем точку вместо <li> для простого списка
 
   // Заменяем примеры кода
   $html = preg_replace('/```(.*?)```/s', '<pre><code>$1</code></pre>', $html);
