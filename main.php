@@ -276,6 +276,8 @@ function sendTelegramMessage(string $chatId, string $message): void
 
     $context = stream_context_create($options);
     $result = file_get_contents($url, false, $context);
+    echo('----------').PHP_EOL;
+    echo '$result='.$result;
 
     if ($result === false) {
       echo 'Ошибка при отправке сообщения в Telegram.';
@@ -283,7 +285,7 @@ function sendTelegramMessage(string $chatId, string $message): void
     }
   }
 
-
+  echo('----------').PHP_EOL;
   echo 'Сообщение успешно отправлено в Telegram!';
 }
 
