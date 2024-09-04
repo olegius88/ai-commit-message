@@ -22,7 +22,7 @@ function main(): void
   $model = getenv('OPENAI_MODEL') ?: 'gpt-4o-mini'; // Default to gpt-4o-mini if no environment variable is set
 
   if (!in_array($model, ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-32k', 'gpt-4o-mini'])) {
-    echo "::error::Invalid model specified. Please use either 'gpt-3.5-turbo', 'gpt-4o-mini', 'gpt-4' or 'gpt-4-32k'." . PHP_EOL;
+    echo "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ ::error::Invalid model specified. Please use either 'gpt-3.5-turbo', 'gpt-4o-mini', 'gpt-4' or 'gpt-4-32k'." . PHP_EOL;
     exit(1);
   }
 
@@ -229,7 +229,7 @@ function sendTelegramMessage(string $chatId, string $message): void
           tgResponseHandler($result, $url, $chatId);
 
           if ($result === false) {
-            echo 'Ошибка при отправке сообщения в Telegram.';
+            echo '⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Ошибка при отправке сообщения в Telegram.';
             exit(1);
           }
         }
@@ -256,7 +256,7 @@ function sendTelegramMessage(string $chatId, string $message): void
         tgResponseHandler($result, $url, $chatId);
 
         if ($result === false) {
-          echo 'Ошибка при отправке сообщения в Telegram.';
+          echo '⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Ошибка при отправке сообщения в Telegram.';
           exit(1);
         }
       }
@@ -286,7 +286,7 @@ function sendTelegramMessage(string $chatId, string $message): void
     tgResponseHandler($result, $url, $chatId);
 
     if ($result === false) {
-      echo 'Ошибка при отправке сообщения в Telegram.';
+      echo '⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Ошибка при отправке сообщения в Telegram.';
       exit(1);
     }
   }
@@ -364,7 +364,7 @@ function getCommitChanges(string $commitSha): string
   $output = shell_exec($command);
 
   if ($output === null) {
-    echo "Error: Could not run git diff." . PHP_EOL;
+    echo "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Error: Could not run git diff." . PHP_EOL;
     exit(1);
   }
 
@@ -389,7 +389,7 @@ function getCommitChangeStats(string $commitSha): string
   $output = shell_exec($command);
 
   if ($output === null) {
-    echo "Error: Could not run git diff --shortstat." . PHP_EOL;
+    echo "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Error: Could not run git diff --shortstat." . PHP_EOL;
     exit(1);
   }
 
@@ -446,7 +446,7 @@ function tgResponseHandler(string $result, string $url, string $chatId): void
 {
   $result = json_decode($result, true);
   if (!$result['ok']) {
-    $errorMessage = "⚠️ Ошибка при отправке сообщения в Telegram:\n";
+    $errorMessage = "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Ошибка при отправке сообщения в Telegram:\n";
     $errorMessage .= "Код ошибки: {$result['error_code']}\n";
     $errorMessage .= "Описание ошибки: {$result['description']}\n";
 
@@ -470,13 +470,13 @@ function tgResponseHandler(string $result, string $url, string $chatId): void
     $errorResult = file_get_contents($url, false, $errorContext);
 
     if ($errorResult === false) {
-      echo 'Ошибка при отправке сообщения об ошибке в Telegram.' . PHP_EOL;
+      echo '⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Ошибка при отправке сообщения об ошибке в Telegram.' . PHP_EOL;
       exit(1);
     }
 
     $errorResult = json_decode($errorResult, true);
     if (!$errorResult['ok']) {
-      echo 'Не удалось отправить сообщение об ошибке в Telegram.' . PHP_EOL;
+      echo '⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Не удалось отправить сообщение об ошибке в Telegram.' . PHP_EOL;
       exit(1);
     }
 
