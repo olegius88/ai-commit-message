@@ -451,8 +451,24 @@ function markdownToHtml(string $markdown): string
   $html = str_replace(['&lt;b&gt;', '&lt;/b&gt;', '&lt;i&gt;', '&lt;/i&gt;', '&lt;code&gt;', '&lt;/code&gt;', '&lt;pre&gt;', '&lt;/pre&gt;'],
     ['<b>', '</b>', '<i>', '</i>', '<code>', '</code>', '<pre>', '</pre>'], $html);
 
+  // Заменяем неподдерживаемые теги на аналоги
+  $html = str_replace(['<p>', '</p>'], ["\n", "\n"], $html);  // <p> -> new line
+  $html = str_replace(['<ul>', '</ul>'], ["\n", "\n"], $html);  // <ul> -> new line
+  $html = str_replace(['<li>', '</li>'], ["• ", "\n"], $html);  // <li> -> bullet point
+  $html = str_replace(['<h1>', '</h1>', '<h2>', '</h2>', '<h3>', '</h3>'], ["\n<b>", "</b>\n", "\n<b>", "</b>\n", "\n<b>", "</b>\n"], $html); // Headers -> bold text
+  $html = str_replace(['<strong>', '</strong>'], ['<b>', '</b>'], $html);  // <strong> -> <b>
+  $html = str_replace(['<em>', '</em>'], ['<i>', '</i>'], $html);  // <em> -> <i>
+
+  // Заменяем теги <a> на поддерживаемый Telegram формат ссылок
+  $html = preg_replace_callback('/<a href="(.*?)">(.*?)<\/a>/', function ($matches) {
+    $url = $matches[1];
+    $text = $matches[2];
+    return "[$text]($url)";
+  }, $html);
+
   return $html;
 }
+
 
 
 
