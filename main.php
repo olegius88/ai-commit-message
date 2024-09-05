@@ -419,8 +419,8 @@ function getRealAuthorInfo(string $commitSha): array
 
 function markdownToHtml(string $markdown): string
 {
-  // Заменяем Markdown-разметку на HTML
-  $html = $markdown;
+  // Заменяем специальные символы на HTML-сущности
+  $html = htmlspecialchars($markdown, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5);
 
   // Заменяем заголовки
   $html = preg_replace('/^(\d+)\.\s/', '<p>$1.</p>', $html);
@@ -449,6 +449,7 @@ function markdownToHtml(string $markdown): string
 
   return $html;
 }
+
 
 function tgResponseHandler(string $result, string $url, string $chatId): void
 {
