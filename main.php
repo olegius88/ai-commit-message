@@ -447,8 +447,13 @@ function markdownToHtml(string $markdown): string
   // Заменяем выделение курсивом
   $html = preg_replace('/\*(.*?)\*/', '<i>$1</i>', $html);
 
+  // Восстанавливаем поддерживаемые Telegram теги из HTML-сущностей
+  $html = str_replace(['&lt;b&gt;', '&lt;/b&gt;', '&lt;i&gt;', '&lt;/i&gt;', '&lt;code&gt;', '&lt;/code&gt;', '&lt;pre&gt;', '&lt;/pre&gt;'],
+    ['<b>', '</b>', '<i>', '</i>', '<code>', '</code>', '<pre>', '</pre>'], $html);
+
   return $html;
 }
+
 
 
 function tgResponseHandler(string $result, string $url, string $chatId): void
