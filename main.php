@@ -459,6 +459,13 @@ function markdownToHtml(string $markdown): string
   $html = str_replace(['<strong>', '</strong>'], ['<b>', '</b>'], $html);  // <strong> -> <b>
   $html = str_replace(['<em>', '</em>'], ['<i>', '</i>'], $html);  // <em> -> <i>
 
+  // Заменяем теги <a> на поддерживаемый Telegram формат ссылок
+  $html = preg_replace_callback('/<a href=&apos;(.*?)&apos;>(.*?)<\/a>/', function ($matches) {
+    $url = $matches[1];
+    $text = $matches[2];
+    return "[$text]($url)";
+  }, $html);
+
   // Заменяем HTML-сущность &apos; на одиночную кавычку
   $html = str_replace('&apos;', "'", $html);
 
