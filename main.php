@@ -102,7 +102,7 @@ function fetchAiGeneratedTitleAndDescription(string $commitChanges, string $open
     $message = "⚡️⚡️⚡️ИИ не доступен⚡️⚡️⚡️\n";
     $message .= "Автор: $committerName ($committerEmail)\n";
     $message .= "Комментарий: <pre><code>$commitTitle</code></pre>\n";
-    $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
+    $message .= "Commit URL: [$commit_url]($commit_url)\n\n";
     $message .= "#коммиты #безИИ";
     if (!empty($repo_name)) {
       $message .= " #" . toHash($committerEmail);
@@ -343,7 +343,7 @@ function sendTelegram(
         $message .= "⚡️⚡️ИИ пример исправлений⚡️⚡️: $newExamples\n";
     }
   }
-  $message .= "Commit URL: <a href='$commit_url'>$commit_url</a>\n\n";
+  $message .= "Commit URL: [$commit_url]($commit_url) \n\n";
   $message .= "#коммиты";
   if (!empty($committerEmail)) {
     $message .= " #" . toHash($committerEmail);
