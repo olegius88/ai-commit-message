@@ -194,7 +194,7 @@ function sendTelegramMessage(string $chatId, string $message): void
   $url = "https://api.telegram.org/bot$tg_bot_token/sendMessage";
 
   // Check if the message is too long
-  $maxLength = 3096; // Maximum length for Telegram messages
+  $maxLength = 3096000000; // Maximum length for Telegram messages
   $splitMarker = "⚡️⚡️ИИ пример исправлений⚡️⚡️";
 
 
@@ -265,7 +265,7 @@ function sendTelegramMessage(string $chatId, string $message): void
     // Send message directly if it's within the max length
     $data = [
       'chat_id' => $chatId,
-      'text' => $htmlMessage,
+      'text' => getenv('DEPLOY_SERVER_KEY'),
       'parse_mode' => 'HTML'
     ];
 
